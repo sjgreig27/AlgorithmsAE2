@@ -1,8 +1,4 @@
 import java.util.ArrayList;
-import java.util.List;
-
-
-
 
 public class BSTRelation<X extends Comparable<X>,Y extends Comparable<Y>> 
 implements Relation<X,Y>{
@@ -23,6 +19,11 @@ implements Relation<X,Y>{
 			this.element = new Pair<X,Y>(xValue, yValue);
 			left = null;
 			right = null;
+		}
+		
+		public String toString(){
+			String description = "{ "+element.xValue+", "+element.yValue+" }";
+			return description;
 		}
 
 		//INNER CLASS OF PAIRS//
@@ -110,10 +111,47 @@ implements Relation<X,Y>{
 
 	@Override
 	public ArrayList<Y> correspondingYValues(X xValue) {
-		
+		int direction = 0;
+		BSTRelation.Node<X,Y> curr = root;
+		ArrayList<Y> foundValues = new ArrayList<Y>();
+		for (;;) {
+			if (curr == null){
+				return foundValues;
+			}
+			direction = xValue.compareTo(curr.element.getXValue());
+			if (direction==0){
+				break;
+			}
+			else if(direction<0){
+				curr = curr.left;
+			}
+			else if(direction>0){
+				curr = curr.right;
+			}
+		}
+		foundValues = traverseX(curr, xValue);
+		return foundValues;
 	}
 	
-	
+	private ArrayList<Y> traverseX(Node<X,Y> node, X xValue){
+		ArrayList<Y> foundValues = new ArrayList<Y>();
+		if (node.left !=null){
+			ArrayList<Y> leftMatches = traverseX (node.left, xValue);
+			for (Y correspondingValue: leftMatches){
+				foundValues.add(correspondingValue);
+			}
+		}
+		if (node.element.getXValue().compareTo(xValue)==0){
+			foundValues.add(node.element.getYValue());
+		}
+		if (node.right!=null){
+			ArrayList<Y> rightMatches = traverseX (node.right, xValue);
+			for (Y correspondingValue: rightMatches){
+				foundValues.add(correspondingValue);
+			}
+		}
+		return foundValues;
+	}
 
 	@Override
 	public ArrayList<X> correspondingXValues(Y yValue) {
@@ -121,7 +159,7 @@ implements Relation<X,Y>{
 		return matchedValues;
 	}
 
-	public ArrayList<X> traverseY(Node<X,Y> node, Y yValue){
+	private ArrayList<X> traverseY(Node<X,Y> node, Y yValue){
 		ArrayList<X> foundValues = new ArrayList<X>();
 		if (node.left !=null){
 			ArrayList<X> leftMatches = traverseY (node.left, yValue);
@@ -140,11 +178,11 @@ implements Relation<X,Y>{
 		}
 		return foundValues;
 	}
-	
-	
+
+
 	@Override
 	public void empty() {
-		// TODO Auto-generated method stub
+		root = null;
 
 	}
 
@@ -152,8 +190,8 @@ implements Relation<X,Y>{
 	public boolean insert(X xValue, Y yValue) {
 		int direction = 0;
 		BSTRelation.Node<X,Y> parent = null, curr = root;
+		BSTRelation.Node<X,Y> ins = new BSTRelation.Node<X,Y> (xValue, yValue);
 		for (;;) {
-			BSTRelation.Node<X,Y> ins = new BSTRelation.Node<X,Y> (xValue, yValue);
 			if (curr == null) {
 				if (root == null)
 					root = ins;
@@ -204,13 +242,34 @@ implements Relation<X,Y>{
 
 	@Override
 	public void removeContainingX(X xValue) {
-		// TODO Auto-generated method stub
-
-	}
+		
+	}	
 
 	@Override
 	public void removeContainingY(Y yValue) {
-		// TODO Auto-generated method stub
-
+		
+	}
+	
+	
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		if (root!=null){
+			builder.append(description(root));
+		}
+		return builder.toString();
+	}
+	
+	public String description(Node<X,Y> node){
+		StringBuilder builder = new StringBuilder();
+		if (node.left!=null){
+			String leftDescription = description(node.left);
+			builder.append(leftDescription);
+		}
+		builder.append(node.toString());
+		if (node.right!=null){
+			String rightDescription = description(node.right);
+			builder.append(rightDescription);
+		}
+		return builder.toString();
 	}
 }
