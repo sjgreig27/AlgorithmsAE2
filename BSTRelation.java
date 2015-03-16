@@ -11,7 +11,7 @@ implements Relation<X,Y>{
 
 	//INNER CLASS FOR NODES//
 
-	protected static class Node<X extends Comparable<X>,Y extends Comparable<Y>>{
+	private static class Node<X extends Comparable<X>,Y extends Comparable<Y>>{
 		protected Pair<X,Y> element;
 		protected Node<X,Y> left, right;
 
@@ -20,7 +20,7 @@ implements Relation<X,Y>{
 			left = null;
 			right = null;
 		}
-		
+
 		public String toString(){
 			String description = "{ "+element.xValue+", "+element.yValue+" }";
 			return description;
@@ -28,7 +28,7 @@ implements Relation<X,Y>{
 
 		//INNER CLASS OF PAIRS//
 
-		protected static class Pair<X extends Comparable<X>,Y extends Comparable<Y>> 
+		private static class Pair<X extends Comparable<X>,Y extends Comparable<Y>> 
 		implements Comparable<Pair<X,Y>>{
 
 			protected X xValue;
@@ -39,19 +39,11 @@ implements Relation<X,Y>{
 				this.yValue = yValue;
 			}
 
-			public X getXValue() {
-				return xValue;
-			}
-
-			public Y getYValue() {
-				return yValue;
-			}
-
 			@Override
 			public int compareTo(Pair<X,Y> that) {
-				int cmp = this.getXValue().compareTo(that.getXValue());
+				int cmp = this.xValue.compareTo(that.xValue);
 				if (cmp == 0)
-					cmp = this.getYValue().compareTo(that.getYValue());
+					cmp = this.yValue.compareTo(that.yValue);
 				return cmp;
 			}
 		}
@@ -114,11 +106,12 @@ implements Relation<X,Y>{
 		int direction = 0;
 		BSTRelation.Node<X,Y> curr = root;
 		ArrayList<Y> foundValues = new ArrayList<Y>();
+		// Identify the first node containing X
 		for (;;) {
 			if (curr == null){
 				return foundValues;
 			}
-			direction = xValue.compareTo(curr.element.getXValue());
+			direction = xValue.compareTo(curr.element.xValue);
 			if (direction==0){
 				break;
 			}
@@ -129,10 +122,11 @@ implements Relation<X,Y>{
 				curr = curr.right;
 			}
 		}
+		// If X is found then check all nodes for multiple instances of X
 		foundValues = traverseX(curr, xValue);
 		return foundValues;
 	}
-	
+
 	private ArrayList<Y> traverseX(Node<X,Y> node, X xValue){
 		ArrayList<Y> foundValues = new ArrayList<Y>();
 		if (node.left !=null){
@@ -141,8 +135,8 @@ implements Relation<X,Y>{
 				foundValues.add(correspondingValue);
 			}
 		}
-		if (node.element.getXValue().compareTo(xValue)==0){
-			foundValues.add(node.element.getYValue());
+		if (node.element.xValue.compareTo(xValue)==0){
+			foundValues.add(node.element.yValue);
 		}
 		if (node.right!=null){
 			ArrayList<Y> rightMatches = traverseX (node.right, xValue);
@@ -167,8 +161,8 @@ implements Relation<X,Y>{
 				foundValues.add(correspondingValue);
 			}
 		}
-		if (node.element.getYValue().compareTo(yValue)==0){
-			foundValues.add(node.element.getXValue());
+		if (node.element.yValue.compareTo(yValue)==0){
+			foundValues.add(node.element.xValue);
 		}
 		if (node.right!=null){
 			ArrayList<X> rightMatches = traverseY (node.right, yValue);
@@ -242,15 +236,98 @@ implements Relation<X,Y>{
 
 	@Override
 	public void removeContainingX(X xValue) {
-		
-	}	
+		int direction = 0;
+		Node<X,Y> curr = root;
+		Node<X,Y> parent = null;
+		// Identify the first node containing X
+		for (;;) {
+			if (curr == null){
+				return;
+			}
+			direction = xValue.compareTo(curr.element.xValue);
+			if (direction==0){
+				break;
+			}
+			else if(direction<0){
+				parent = curr;
+				curr = curr.left;
+			}
+			else if(direction>0){
+				parent = curr;
+				curr = curr.right;
+			}
+		}
+		// If X is found then check all nodes for multiple instances of X
+		searchAndDeleteX(curr, parent, xValue);
+	}
+	
+	public void searchAndDeleteX (Node<X,Y> curr, Node<X,Y> parent, X xValue){
+		if (curr.left!=null){
+			searchAndDeleteX(curr.left, curr, xValue);
+		}
+		if (curr.element.xValue.compareTo(xValue)==0){
+			removeNode(curr, parent);
+		}
+		if (curr.right!=null){
+			searchAndDeleteX(curr.right, curr, xValue);
+		}
+	}
 
 	@Override
 	public void removeContainingY(Y yValue) {
-		
+		// if the root element is empty
+		if (root== null){
+			return;
+		}
+		Node<X,Y> curr = root;
+		Node<X,Y> parent = null;
+		searchAndDeleteY(curr, parent, yValue);
 	}
 	
-	
+	public void searchAndDeleteY (Node<X,Y> curr, Node<X,Y> parent, Y yValue){
+		if (curr.left!=null){
+			searchAndDeleteY(curr.left, curr, yValue);
+		}
+		if (curr.element.yValue.compareTo(yValue)==0){
+			removeNode(curr, parent);
+		}
+		if (curr.right!=null){
+			searchAndDeleteY(curr.right, curr, yValue);
+		}
+	}
+
+	public void removeNode (Node<X,Y> toBeRemoved, Node<X,Y> parent){
+		// If one of the children is empty
+		if (toBeRemoved.left == null || toBeRemoved.right == null){
+			Node<X,Y> newChild;
+			if(toBeRemoved.left==null)
+				newChild = toBeRemoved.right;
+			else
+				newChild = toBeRemoved.left;
+			if (parent == null) // Found in root
+				root = newChild;
+			else if (parent.left == toBeRemoved)
+				parent.left = newChild;
+			else
+				parent.right = newChild;
+			return;
+		}
+		// Neither subtree is empty
+		// Therefore, find the smallest element in the right subtree
+		Node<X,Y> smallestParent = toBeRemoved;
+		Node<X,Y> smallest = toBeRemoved.right;
+		while(smallest.left!=null){
+			smallestParent = smallest;
+			smallest = smallest.left;
+		}
+
+		// So now smallest contains the smallest child in the right subtree
+		// Move contents, unlink the child node
+
+		toBeRemoved.element = smallest.element;
+		smallestParent.left = smallest.right;
+	}
+
 	public String toString(){
 		StringBuilder builder = new StringBuilder();
 		if (root!=null){
@@ -258,7 +335,7 @@ implements Relation<X,Y>{
 		}
 		return builder.toString();
 	}
-	
+
 	public String description(Node<X,Y> node){
 		StringBuilder builder = new StringBuilder();
 		if (node.left!=null){
