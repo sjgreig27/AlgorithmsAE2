@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public interface Relation<X extends Comparable<X>,Y extends Comparable<Y>> {
 	
 	/**
@@ -16,7 +18,7 @@ public interface Relation<X extends Comparable<X>,Y extends Comparable<Y>> {
 	 * @return Y[]	an array of type Y, containing the values which are paired
 	 * to the xValue.
 	 */
-	public Y[] correspondingYValues (X xValue);
+	public ArrayList<Y> correspondingYValues (X xValue);
 	
 	/**
 	 * Method to return the values of X in the relation which are 
@@ -25,7 +27,7 @@ public interface Relation<X extends Comparable<X>,Y extends Comparable<Y>> {
 	 * @return X[]	an array of type X, containing the values which are paired
 	 * to the xValue.
 	 */
-	public X[] correspondingXValues (Y yValue);
+	public ArrayList<X> correspondingXValues (Y yValue);
 	
 	/**
 	 * Method to empty the relation of all pairs of values

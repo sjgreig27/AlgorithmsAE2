@@ -1,3 +1,8 @@
+import java.util.ArrayList;
+import java.util.List;
+
+
+
 
 public class BSTRelation<X extends Comparable<X>,Y extends Comparable<Y>> 
 implements Relation<X,Y>{
@@ -10,7 +15,7 @@ implements Relation<X,Y>{
 
 	//INNER CLASS FOR NODES//
 
-	private static class Node<X extends Comparable<X>,Y extends Comparable<Y>>{
+	protected static class Node<X extends Comparable<X>,Y extends Comparable<Y>>{
 		protected Pair<X,Y> element;
 		protected Node<X,Y> left, right;
 
@@ -22,7 +27,7 @@ implements Relation<X,Y>{
 
 		//INNER CLASS OF PAIRS//
 
-		private static class Pair<X extends Comparable<X>,Y extends Comparable<Y>> 
+		protected static class Pair<X extends Comparable<X>,Y extends Comparable<Y>> 
 		implements Comparable<Pair<X,Y>>{
 
 			protected X xValue;
@@ -104,17 +109,39 @@ implements Relation<X,Y>{
 	}
 
 	@Override
-	public Y[] correspondingYValues(X xValue) {
-		// TODO Auto-generated method stub
-		return null;
+	public ArrayList<Y> correspondingYValues(X xValue) {
+		
 	}
+	
+	
 
 	@Override
-	public X[] correspondingXValues(Y yValue) {
-		// TODO Auto-generated method stub
-		return null;
+	public ArrayList<X> correspondingXValues(Y yValue) {
+		ArrayList<X> matchedValues = traverseY(this.root, yValue);
+		return matchedValues;
 	}
 
+	public ArrayList<X> traverseY(Node<X,Y> node, Y yValue){
+		ArrayList<X> foundValues = new ArrayList<X>();
+		if (node.left !=null){
+			ArrayList<X> leftMatches = traverseY (node.left, yValue);
+			for (X correspondingValue: leftMatches){
+				foundValues.add(correspondingValue);
+			}
+		}
+		if (node.element.getYValue().compareTo(yValue)==0){
+			foundValues.add(node.element.getXValue());
+		}
+		if (node.right!=null){
+			ArrayList<X> rightMatches = traverseY (node.right, yValue);
+			for (X correspondingValue: rightMatches){
+				foundValues.add(correspondingValue);
+			}
+		}
+		return foundValues;
+	}
+	
+	
 	@Override
 	public void empty() {
 		// TODO Auto-generated method stub
